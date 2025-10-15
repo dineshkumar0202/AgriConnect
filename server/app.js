@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
-// import authRoutes from "./routes/auth.js";
-// import productRoutes from "./routes/product.js";
-// import commandeRoutes from "./routes/commande.js";
-// import newsRoutes from "./routes/news.js";
-// import interestRoutes from "./routes/interest.js";
+import authRoutes from "./routes/auth.js";
+import productRoutes from "./routes/products.js";
+import commandeRoutes from "./routes/comments.js";
+import newsRoutes from "./routes/news.js";
+import interestRoutes from "./routes/interest.js";
 
 dotenv.config();
 const app = express();
@@ -18,11 +18,11 @@ app.use(express.urlencoded({ extended:true}));
 
 
 // Routes
-// app.use("/api/auth", authRoutes);
-// app.use(".api/products", productRoutes);
-// app.use("/api/commandes", commandeRoutes);
-// app.use("/api/news", newsRoutes);
-// app.use("/api/interests", interestRoutes);
+app.use("/api/auth", authRoutes);
+app.use(".api/products", productRoutes);
+app.use("/api/commandes", commandeRoutes);
+app.use("/api/news", newsRoutes);
+app.use("/api/interests", interestRoutes);
 
 // connect to MongoDB
 
