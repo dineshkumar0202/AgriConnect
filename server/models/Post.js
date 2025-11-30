@@ -7,33 +7,20 @@ const PostSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
-
-    type: { type: String, required: true },
+    type: { type: String, required: true }, // vegetable / fruit
     title: { type: String, required: true },
     description: { type: String },
     pricePerKg: { type: Number, required: true },
+    extraPrice: { type: Number },
     quantityKg: { type: Number, required: true },
-
     imageUrl: { type: String },
-
     locationText: { type: String, required: true },
     liveLocationUrl: { type: String },
-
     availableDate: { type: Date },
-
-    sellerPhone: {
-      type: String,
-      required: true
-    },
-
-    isActive: {
-      type: Boolean,
-      default: true
-    }
+    sellerPhone: { type: String, required: true },
+    isActive: { type: Boolean, default: true }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 export const Post = mongoose.model("Post", PostSchema);

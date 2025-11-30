@@ -8,6 +8,7 @@ const AdminPanel = () => {
   const { strings, user } = useApp();
   const [stats, setStats] = useState(null);
   const [sellers, setSellers] = useState([]);
+  const [buyers, setBuyers] = useState([]);
   const [newsForm, setNewsForm] = useState({
     title: "",
     summary: "",
@@ -17,16 +18,20 @@ const AdminPanel = () => {
   });
 
   const loadData = async () => {
-    const [s, sellersRes] = await Promise.all([
+    const [s, sellersRes, buyersRes] = await Promise.all([
       axios.get(`${API_BASE}/api/admin/stats`, {
         headers: { Authorization: `Bearer ${user?.token}` }
       }),
       axios.get(`${API_BASE}/api/admin/sellers`, {
         headers: { Authorization: `Bearer ${user?.token}` }
+      }),
+      axios.get(`${API_BASE}/api/admin/buyers`, {
+        headers: { Authorization: `Bearer ${user?.token}` }
       })
     ]);
     setStats(s.data);
     setSellers(sellersRes.data);
+    setBuyers(buyersRes.data);
   };
 
   useEffect(() => {
@@ -55,6 +60,7 @@ const AdminPanel = () => {
         <span>🛠</span> {strings.adminPanel}
       </h2>
 
+      {/* Stats */}
       <div className="grid md:grid-cols-3 gap-3">
         <div className="card">
           <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -76,33 +82,63 @@ const AdminPanel = () => {
         </div>
       </div>
 
+      {/* Lists + News form */}
       <div className="grid md:grid-cols-[2fr,1.5fr] gap-4">
         <div className="card overflow-x-auto">
           <h3 className="font-semibold text-sm mb-2">{strings.sellerList}</h3>
+          <table className="w-full text-xs md:text-sm mb-3">
+            <thead className="text-slate-500 dark:text-slate-400">
+              <tr>
+                <th className="text-left py-1 pr-2">#</th>
+                <th className="text-left py-1 pr-2">{strings.name}</th>
+                <th className="text-left py-1 pr-2">{strings.email}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sellers.map((s, idx) => (
+                <tr
+                  key={s._id}
+                  className="border-t border-slate-100 dark:border-slate-800"
+                >
+                  <td className="py-1 pr-2">{idx + 1}</td>
+                  <td className="py-1 pr-2">{s.name}</td>
+                  <td className="py-1 pr-2">{s.email}</td>
+                </tr>
+              ))}
+              {!sellers.length && (
+                <tr>
+                  <td colSpan={3} className="py-2 text-slate-500">
+                    No sellers.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <h3 className="font-semibold text-sm mb-2">{strings.buyerList}</h3>
           <table className="w-full text-xs md:text-sm">
             <thead className="text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="text-left py-1 pr-2">#</th>
                 <th className="text-left py-1 pr-2">{strings.name}</th>
                 <th className="text-left py-1 pr-2">{strings.email}</th>
-                <th className="text-left py-1 pr-2">{strings.createdAt}</th>
               </tr>
             </thead>
             <tbody>
-              {sellers.map((s, idx) => (
-                <tr key={s._id} className="border-t border-slate-100 dark:border-slate-800">
+              {buyers.map((b, idx) => (
+                <tr
+                  key={b._id}
+                  className="border-t border-slate-100 dark:border-slate-800"
+                >
                   <td className="py-1 pr-2">{idx + 1}</td>
-                  <td className="py-1 pr-2">{s.name}</td>
-                  <td className="py-1 pr-2">{s.email}</td>
-                  <td className="py-1 pr-2">
-                    {new Date(s.createdAt).toLocaleDateString()}
-                  </td>
+                  <td className="py-1 pr-2">{b.name}</td>
+                  <td className="py-1 pr-2">{b.email}</td>
                 </tr>
               ))}
-              {sellers.length === 0 && (
+              {!buyers.length && (
                 <tr>
-                  <td className="py-2 text-slate-500 dark:text-slate-400" colSpan={4}>
-                    No sellers registered.
+                  <td colSpan={3} className="py-2 text-slate-500">
+                    No buyers.
                   </td>
                 </tr>
               )}
@@ -111,13 +147,13 @@ const AdminPanel = () => {
         </div>
 
         <form onSubmit={submitNews} className="card space-y-2">
-          <h3 className="font-semibold text-sm mb-1">{strings.agriNews}</h3>
+          <h3 className="font-semibold text-sm mb-1">{strings.createNews}</h3>
           <input
             name="title"
             value={newsForm.title}
             onChange={handleNewsChange}
             placeholder="Headline"
-            className="w-full text-xs rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 dark:bg-slate-900 dark:border-slate-700"
+            className="input"
             required
           />
           <textarea
@@ -125,7 +161,7 @@ const AdminPanel = () => {
             value={newsForm.summary}
             onChange={handleNewsChange}
             placeholder="Short summary"
-            className="w-full text-xs rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 dark:bg-slate-900 dark:border-slate-700"
+            className="input h-24"
             required
           />
           <input
@@ -133,21 +169,21 @@ const AdminPanel = () => {
             value={newsForm.imageUrl}
             onChange={handleNewsChange}
             placeholder="Image URL"
-            className="w-full text-xs rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 dark:bg-slate-900 dark:border-slate-700"
+            className="input"
           />
           <input
             name="source"
             value={newsForm.source}
             onChange={handleNewsChange}
             placeholder="Source"
-            className="w-full text-xs rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 dark:bg-slate-900 dark:border-slate-700"
+            className="input"
           />
           <input
             name="link"
             value={newsForm.link}
             onChange={handleNewsChange}
             placeholder="Article link"
-            className="w-full text-xs rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 dark:bg-slate-900 dark:border-slate-700"
+            className="input"
           />
           <button type="submit" className="btn-primary w-full">
             Save News
@@ -155,6 +191,7 @@ const AdminPanel = () => {
         </form>
       </div>
 
+      {/* Activity */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card">
           <h3 className="font-semibold text-sm mb-2 flex items-center gap-1">
@@ -194,7 +231,8 @@ const AdminPanel = () => {
                 className="border-b border-slate-100 dark:border-slate-800 py-1"
               >
                 <p className="font-semibold">
-                  {c.user?.name} <span className="text-[11px]">({c.user?.email})</span>
+                  {c.user?.name}{" "}
+                  <span className="text-[11px]">({c.user?.email})</span>
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-300">
                   on {c.post?.title}

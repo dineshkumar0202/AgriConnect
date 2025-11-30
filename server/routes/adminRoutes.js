@@ -6,13 +6,23 @@ import { protect, adminOnly } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Sellers list
+// Sellers and buyers list
 router.get("/sellers", protect, adminOnly, async (req, res) => {
   try {
     const sellers = await User.find({ role: "seller" }).sort({ createdAt: -1 });
     res.json(sellers);
   } catch (err) {
     console.error("Get sellers error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/buyers", protect, adminOnly, async (req, res) => {
+  try {
+    const buyers = await User.find({ role: "user" }).sort({ createdAt: -1 });
+    res.json(buyers);
+  } catch (err) {
+    console.error("Get buyers error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });

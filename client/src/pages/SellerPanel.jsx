@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useApp } from "../context.jsx";
+import { Upload, PlusCircle, Package, MapPin, Phone, Trash2, CheckCircle } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
@@ -12,12 +14,13 @@ const SellerPanel = () => {
     title: "",
     description: "",
     pricePerKg: "",
+    extraPrice: "",
     quantityKg: "",
     locationText: "",
     liveLocationUrl: "",
     availableDate: "",
-    sellerPhone: "", 
-  } );
+    sellerPhone: ""
+  });
 
   const [imageFile, setImageFile] = useState(null);
   const [myPosts, setMyPosts] = useState([]);
@@ -25,7 +28,7 @@ const SellerPanel = () => {
 
   const loadMyPosts = async () => {
     const res = await axios.get(`${API_BASE}/api/posts/my`, {
-      headers: { Authorization: `Bearer ${user?.token}` },
+      headers: { Authorization: `Bearer ${user?.token}` }
     });
     setMyPosts(res.data);
   };
@@ -54,8 +57,8 @@ const SellerPanel = () => {
       await axios.post(`${API_BASE}/api/posts`, fd, {
         headers: {
           Authorization: `Bearer ${user?.token}`,
-          "Content-Type": "multipart/form-data",
-        },
+          "Content-Type": "multipart/form-data"
+        }
       });
 
       setForm({
@@ -63,17 +66,18 @@ const SellerPanel = () => {
         title: "",
         description: "",
         pricePerKg: "",
+        extraPrice: "",
         quantityKg: "",
         locationText: "",
         liveLocationUrl: "",
         availableDate: "",
-        sellerPhone: "",
+        sellerPhone: ""
       });
-
       setImageFile(null);
       await loadMyPosts();
+      toast.success("Post created successfully");
     } catch (err) {
-      console.error("Upload error:", err);
+      toast.error("Failed to create post");
     } finally {
       setLoading(false);
     }
@@ -86,74 +90,83 @@ const SellerPanel = () => {
       { headers: { Authorization: `Bearer ${user?.token}` } }
     );
     await loadMyPosts();
+    toast.success("Post status updated");
   };
 
   const deletePost = async (id) => {
     if (!window.confirm("Delete this post?")) return;
     await axios.delete(`${API_BASE}/api/posts/${id}`, {
-      headers: { Authorization: `Bearer ${user?.token}` },
+      headers: { Authorization: `Bearer ${user?.token}` }
     });
     loadMyPosts();
+    toast.success("Post deleted");
   };
 
   if (!user || user.role !== "seller") return null;
 
   return (
-    <section className="max-w-6xl mx-auto px-4 pb-10 space-y-6">
-      <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2 animate-fade-up">
-        <span className="text-2xl">👨‍🌾</span> {strings.sellerPanel}
-      </h2>
+    <section className="max-w-7xl mx-auto px-4 pb-14 space-y-10">
+      
+      {/* ------------------ HEADER ------------------ */}
+      <div className="bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-2xl p-6 shadow-lg flex items-center justify-between animate-fade-up">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <span className="text-3xl">👨‍🌾</span> Seller Dashboard
+          </h2>
+          <p className="text-sm opacity-90 mt-1">
+            Manage your agriculture posts and sales
+          </p>
+        </div>
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* FORM */}
+      <div className="grid md:grid-cols-2 gap-8">
+        
+        {/* ------------------ CREATE POST CARD ------------------ */}
         <form
           onSubmit={handleSubmit}
-          className="p-6 rounded-2xl shadow-xl bg-white dark:bg-slate-900 
-          border border-slate-200 dark:border-slate-700 space-y-4 
-          transform transition-all duration-300 hover:shadow-2xl animate-fade-up"
+          className="
+            bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-xl 
+            border border-slate-200 dark:border-slate-700 space-y-5 
+            backdrop-blur-lg animate-slide-up
+          "
         >
-          <h3 className="text-lg font-semibold">{strings.createPost}</h3>
+          <h3 className="text-xl font-semibold flex items-center gap-2">
+            <PlusCircle size={20} className="text-emerald-600" /> Create New Post
+          </h3>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Row 1 */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold">
-                {strings.productType}
-              </label>
+              <label className="text-xs font-semibold">Product Type</label>
               <select
                 name="type"
                 value={form.type}
                 onChange={handleChange}
-                className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-                dark:border-slate-700 dark:bg-slate-800"
+                className="input"
               >
-                <option value="vegetable">{strings.vegetable}</option>
-                <option value="fruit">{strings.fruit}</option>
+                <option value="vegetable">Vegetable</option>
+                <option value="fruit">Fruit</option>
               </select>
             </div>
 
             <div>
-              <label className="text-xs font-semibold">
-                {strings.availableDate}
-              </label>
+              <label className="text-xs font-semibold">Available Date</label>
               <input
                 type="date"
                 name="availableDate"
                 value={form.availableDate}
                 onChange={handleChange}
-                className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-                dark:border-slate-700 dark:bg-slate-800"
+                className="input"
               />
             </div>
           </div>
 
-          {/* Mobile Number */}
           <input
             name="sellerPhone"
             value={form.sellerPhone}
             onChange={handleChange}
-            placeholder=" Mobile Number"
-            className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-            dark:border-slate-700 dark:bg-slate-800"
+            placeholder="Mobile Number"
+            className="input"
             required
           />
 
@@ -161,9 +174,8 @@ const SellerPanel = () => {
             name="title"
             value={form.title}
             onChange={handleChange}
-            placeholder="Enter product title"
-            className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-            dark:border-slate-700 dark:bg-slate-800"
+            placeholder="Product Title"
+            className="input"
             required
           />
 
@@ -171,46 +183,53 @@ const SellerPanel = () => {
             name="description"
             value={form.description}
             onChange={handleChange}
-            placeholder="Enter product description..."
-            className="input w-full h-24 py-3 px-4 rounded-xl border border-slate-300 
-            dark:border-slate-700 dark:bg-slate-800"
+            placeholder="Describe the product..."
+            className="input h-24"
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Row 2 */}
+          <div className="grid grid-cols-3 gap-4">
             <input
               type="number"
               name="pricePerKg"
               value={form.pricePerKg}
               onChange={handleChange}
-              placeholder="Price per kg"
-              className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-              dark:border-slate-700 dark:bg-slate-800"
+              placeholder="₹/Kg"
+              className="input"
               required
+            />
+            <input
+              type="number"
+              name="extraPrice"
+              value={form.extraPrice}
+              onChange={handleChange}
+              placeholder="Extra ₹"
+              className="input"
             />
             <input
               type="number"
               name="quantityKg"
               value={form.quantityKg}
               onChange={handleChange}
-              placeholder="Quantity (Kg)"
-              className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-              dark:border-slate-700 dark:bg-slate-800"
+              placeholder="Qty (Kg)"
+              className="input"
               required
             />
           </div>
 
-          <div>
-            <label className="text-xs font-semibold">Upload Image</label>
-            <input type="file" onChange={handleFile} className="text-xs mt-1" />
+          {/* Image Upload */}
+          <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
+            <Upload size={22} className="mx-auto text-emerald-600" />
+            <p className="text-xs mt-1">Upload Product Image</p>
+            <input type="file" onChange={handleFile} className="text-xs mt-2" />
           </div>
 
           <input
             name="locationText"
             value={form.locationText}
             onChange={handleChange}
-            placeholder="Enter location"
-            className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-            dark:border-slate-700 dark:bg-slate-800"
+            placeholder="Location"
+            className="input"
             required
           />
 
@@ -218,82 +237,79 @@ const SellerPanel = () => {
             name="liveLocationUrl"
             value={form.liveLocationUrl}
             onChange={handleChange}
-            placeholder="Google Maps link"
-            className="input w-full py-3 px-4 rounded-xl border border-slate-300 
-            dark:border-slate-700 dark:bg-slate-800"
+            placeholder="Google Maps URL"
+            className="input"
           />
 
-          <button
-            className="w-full py-3 rounded-xl bg-green-600 hover:bg-green-500 
-            text-white font-semibold transition-all shadow-md"
-          >
-            {loading ? "Uploading..." : strings.save}
+          <button className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg transition-all">
+            {loading ? "Uploading..." : "Save Post"}
           </button>
         </form>
 
-        {/* POSTS LIST */}
-        <div className="space-y-4 animate-fade-up">
-          <h3 className="text-lg font-semibold">{strings.myPosts}</h3>
+        {/* ------------------ POSTS LIST ------------------ */}
+        <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
+          <h3 className="text-xl font-semibold flex items-center gap-2 mb-2">
+            <Package size={20} className="text-emerald-600" /> My Posts
+          </h3>
 
-          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-            {myPosts.map((p) => (
-              <div
-                key={p._id}
-                className="p-4 rounded-2xl shadow-md bg-white dark:bg-slate-900 
-                border border-slate-200 dark:border-slate-700 flex items-center 
-                justify-between gap-4 hover:shadow-xl transition-all animate-slide-up"
-              >
-                <div className="flex items-center gap-4">
-                  <img
-                    src={
-                      p.imageUrl
-                        ? `${API_BASE}${p.imageUrl.replace(/\\/g, "/")}`
-                        : "https://via.placeholder.com/100"
-                    }
-                    className="w-20 h-20 rounded-xl object-cover shadow-md"
-                  />
+          {myPosts.map((p) => (
+            <div
+              key={p._id}
+              className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 flex items-center gap-4 animate-fade-up"
+            >
+              <img
+                src={
+                  p.imageUrl
+                    ? `${API_BASE}${p.imageUrl.replace(/\\/g, "/")}`
+                    : "https://via.placeholder.com/100"
+                }
+                className="w-20 h-20 rounded-xl object-cover shadow"
+              />
 
-                  <div>
-                    <p className="font-semibold">{p.title}</p>
-                    <p className="text-xs text-slate-500">
-                      ₹ {p.pricePerKg} / Kg • {p.quantityKg} Kg
-                    </p>
-                    <p className="text-xs text-slate-500">{p.locationText}</p>
-                    <p className="text-xs text-slate-500">📞 {p.sellerPhone}</p>
+              <div className="flex-1">
+                <p className="font-semibold text-slate-800 dark:text-white">
+                  {p.title}
+                </p>
+                <p className="text-xs text-slate-500">
+                  ₹ {p.pricePerKg} / Kg • {p.quantityKg} Kg
+                </p>
+                <p className="text-xs flex items-center gap-1 text-slate-500">
+                  <MapPin size={14} /> {p.locationText}
+                </p>
+                <p className="text-xs flex items-center gap-1 text-slate-500">
+                  <Phone size={14} /> {p.sellerPhone}
+                </p>
 
-                    <p
-                      className={`text-xs font-semibold ${
-                        p.isActive ? "text-green-600" : "text-red-500"
-                      }`}
-                    >
-                      {p.isActive ? strings.active : strings.inactive}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => togglePost(p._id)}
-                    className="px-3 py-1 rounded-full text-xs border border-slate-300 
-                    hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    {strings.toggleActive}
-                  </button>
-                  <button
-                    onClick={() => deletePost(p._id)}
-                    className="px-3 py-1 rounded-full text-xs bg-red-500 
-                    text-white hover:bg-red-400"
-                  >
-                    {strings.delete}
-                  </button>
-                </div>
+                <p
+                  className={`text-xs font-semibold mt-1 ${
+                    p.isActive ? "text-green-600" : "text-red-500"
+                  }`}
+                >
+                  {p.isActive ? "Active" : "Inactive"}
+                </p>
               </div>
-            ))}
 
-            {!myPosts.length && (
-              <p className="text-sm text-slate-500">No posts created yet.</p>
-            )}
-          </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => togglePost(p._id)}
+                  className="px-3 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition"
+                >
+                  Toggle
+                </button>
+
+                <button
+                  onClick={() => deletePost(p._id)}
+                  className="px-3 py-1 rounded-full text-xs bg-red-500 text-white hover:bg-red-400 transition flex items-center gap-1"
+                >
+                  <Trash2 size={12} /> Delete
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {!myPosts.length && (
+            <p className="text-sm text-slate-500">No posts created yet.</p>
+          )}
         </div>
       </div>
     </section>

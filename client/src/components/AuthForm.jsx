@@ -4,12 +4,14 @@ import { useApp } from "../context.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
-const AuthForm = () => {
-  const { strings, login } = useApp();
-  const [isLogin, setIsLogin] = useState(true);
+const AuthForm = ({ mode }) => {
+  const { strings, login, setView } = useApp();
+  const isLogin = mode === "login";
+
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     role: "user",
     adminSecret: ""
@@ -32,6 +34,7 @@ const AuthForm = () => {
         : { ...form };
       const res = await axios.post(API_BASE + url, payload);
       login(res.data);
+      setView("home");
     } catch (err) {
       setError(err.response?.data?.message || "Error");
     } finally {
@@ -40,18 +43,10 @@ const AuthForm = () => {
   };
 
   return (
-    <div className="card max-w-md mx-auto mt-6 animate-fade-up">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg md:text-xl font-semibold">
-          {isLogin ? strings.login : strings.register}
-        </h2>
-        <button
-          onClick={() => setIsLogin(!isLogin)}
-          className="text-xs text-emerald-600 underline dark:text-emerald-400"
-        >
-          {isLogin ? strings.register : strings.login}
-        </button>
-      </div>
+    <div className="max-w-md mx-auto mt-6 card animate-fade-up">
+      <h2 className="text-lg md:text-xl font-semibold mb-3">
+        {isLogin ? strings.login : strings.register}
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         {!isLogin && (
@@ -59,11 +54,20 @@ const AuthForm = () => {
             <div>
               <label className="block text-sm mb-1">{strings.name}</label>
               <input
-                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm dark:bg-slate-800 dark:border-slate-700"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
+                className="input"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">{strings.phone}</label>
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="input"
               />
             </div>
           </>
@@ -72,10 +76,11 @@ const AuthForm = () => {
         <div>
           <label className="block text-sm mb-1">{strings.email}</label>
           <input
-            className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm dark:bg-slate-800 dark:border-slate-700"
             name="email"
+            type="email"
             value={form.email}
             onChange={handleChange}
+            className="input"
             required
           />
         </div>
@@ -84,10 +89,10 @@ const AuthForm = () => {
           <label className="block text-sm mb-1">{strings.password}</label>
           <input
             type="password"
-            className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm dark:bg-slate-800 dark:border-slate-700"
             name="password"
             value={form.password}
             onChange={handleChange}
+            className="input"
             required
           />
         </div>
@@ -100,7 +105,7 @@ const AuthForm = () => {
                 name="role"
                 value={form.role}
                 onChange={handleChange}
-                className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm dark:bg-slate-800 dark:border-slate-700"
+                className="input"
               >
                 <option value="user">{strings.buyer}</option>
                 <option value="seller">{strings.seller}</option>
@@ -111,10 +116,10 @@ const AuthForm = () => {
               <div>
                 <label className="block text-sm mb-1">{strings.adminSecret}</label>
                 <input
-                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm dark:bg-slate-800 dark:border-slate-700"
                   name="adminSecret"
                   value={form.adminSecret}
                   onChange={handleChange}
+                  className="input"
                   required
                 />
               </div>
