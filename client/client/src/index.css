@@ -28,6 +28,3 @@ body {
     focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500
     dark:border-slate-700 dark:bg-slate-900 dark:text-slate-50;
 }
-
-/* extra smooth background for landing */
-body { @apply bg-emerald-50 dark:bg-slate-950; }
