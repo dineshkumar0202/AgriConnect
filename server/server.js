@@ -22,7 +22,11 @@ const httpServer = createServer(app);
 const PORT = process.env.PORT || 5000;
 
 export const io = new Server(httpServer, {
-  cors: { origin: "*" }
+  cors: {
+    origin: ["http://localhost:5173", "https://agriconnect-market.onrender.com"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
 
 io.on("connection", (socket) => {
@@ -41,7 +45,11 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://agriconnect-market.onrender.com"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 app.use("/uploads", express.static(uploadsDir));
 

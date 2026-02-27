@@ -17,7 +17,9 @@ const App = () => {
 
   useEffect(() => {
     // Connect to the socket server
-    const socket = io(API_BASE);
+    const socket = io(API_BASE, {
+      withCredentials: true
+    });
 
     if (user && user._id) {
        socket.emit("join", user._id);
