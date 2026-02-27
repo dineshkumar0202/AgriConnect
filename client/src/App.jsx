@@ -10,7 +10,7 @@ import SellerPanel from "./pages/SellerPanel.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
 import AuthForm from "./components/AuthForm.jsx";
  
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE || "https://agriconnect-vhwd.onrender.com";
 
 const App = () => {
   const { view, user, setView } = useApp();
