@@ -24,9 +24,11 @@ const PORT = process.env.PORT || 5000;
 export const io = new Server(httpServer, {
   cors: {
     origin: ["http://localhost:5173", "https://agriconnect-market.onrender.com"],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
-  }
+  },
+  transports: ['websocket', 'polling']
 });
 
 io.on("connection", (socket) => {
@@ -47,9 +49,11 @@ if (!fs.existsSync(uploadsDir)) {
 
 app.use(cors({
   origin: ["http://localhost:5173", "https://agriconnect-market.onrender.com"],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+app.options('*', cors()); // Enable preflight processing across the board
 app.use(express.json());
 app.use("/uploads", express.static(uploadsDir));
 
