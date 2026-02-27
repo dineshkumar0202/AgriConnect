@@ -1,19 +1,28 @@
 import express from "express";
 import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import path from "path";
 import { Post } from "../models/Post.js";
+import { Order } from "../models/Order.js";
 import { protect, sellerOnly } from "../middleware/auth.js";
+import { io } from "../server.js";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const router = express.Router();
 
-// Multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
+// Cloudinary storage for Multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "agriconnect_posts", // Folder on Cloudinary
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "avif"]
   }
 });
 
@@ -35,7 +44,7 @@ router.post("/", protect, sellerOnly, upload.single("image"), async (req, res) =
       sellerPhone
     } = req.body;
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : "";
+    const imageUrl = req.file ? req.file.path : "";
 
     const post = await Post.create({
       seller: req.user._id,
@@ -50,6 +59,15 @@ router.post("/", protect, sellerOnly, upload.single("image"), async (req, res) =
       liveLocationUrl,
       availableDate,
       sellerPhone
+    });
+
+    // Populate the seller info so frontend can display name
+    const populatedPost = await Post.findById(post._id).populate("seller", "name");
+
+    // Broadcast notification to all connected clients
+    io.emit("new_post", {
+      message: `New crop available: ${title} by ${populatedPost.seller.name}!`,
+      post: populatedPost
     });
 
     res.json(post);
@@ -69,6 +87,28 @@ router.get("/", async (req, res) => {
     res.json(posts);
   } catch (err) {
     console.error("Get posts error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get my stats
+router.get("/my/stats", protect, sellerOnly, async (req, res) => {
+  try {
+    const sellerId = req.user._id;
+
+    // We sum up the quantity weight instead of "Total Views"
+    const myPosts = await Post.find({ seller: sellerId });
+    const stockKg = myPosts.reduce((sum, p) => sum + (p.quantityKg || 0), 0);
+
+    const orders = await Order.find({ seller: sellerId });
+    const inquiries = orders.length;
+
+    const revenue = orders.reduce((sum, ord) => sum + (ord.totalPrice || 0), 0);
+
+    // Return mapped to { views, inquiries, revenue } where 'views' acts as Listed Stock limit gauge
+    res.json({ views: stockKg, inquiries, revenue });
+  } catch (err) {
+    console.error("Get my stats error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });

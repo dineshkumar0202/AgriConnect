@@ -3,6 +3,7 @@ import { Order } from "../models/Order.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
 import { protect } from "../middleware/auth.js";
+import { io } from "../server.js";
 
 const router = express.Router();
 
@@ -60,20 +61,20 @@ router.post("/", protect, async (req, res) => {
 
     const buyerWhatsApp = normalizePhone(buyer.phone)
       ? `https://wa.me/${normalizePhone(
-          buyer.phone
-        )}?text=${encodeURIComponent(buyerMessage)}`
+        buyer.phone
+      )}?text=${encodeURIComponent(buyerMessage)}`
       : null;
 
     const sellerWhatsApp = normalizePhone(post.sellerPhone || post.seller.phone)
       ? `https://wa.me/${normalizePhone(
-          post.sellerPhone || post.seller.phone
-        )}?text=${encodeURIComponent(sellerMessage)}`
+        post.sellerPhone || post.seller.phone
+      )}?text=${encodeURIComponent(sellerMessage)}`
       : null;
 
     const buyerEmail = buyer.email
       ? `mailto:${buyer.email}?subject=${encodeURIComponent(
-          "Order Confirmation"
-        )}&body=${encodeURIComponent(buyerMessage)}`
+        "Order Confirmation"
+      )}&body=${encodeURIComponent(buyerMessage)}`
       : null;
 
     const sellerEmail =
@@ -81,6 +82,11 @@ router.post("/", protect, async (req, res) => {
       `mailto:${post.seller.email}?subject=${encodeURIComponent(
         "New Order Received"
       )}&body=${encodeURIComponent(sellerMessage)}`;
+
+    // 🔥 Emit real-time push notification to Seller
+    io.to(post.seller._id.toString()).emit("personal_alert", {
+      message: `🛒 New Order! ${buyer.name} bought ${qty}Kg of ${post.title}. Check Dashboard!`
+    });
 
     res.json({
       order,

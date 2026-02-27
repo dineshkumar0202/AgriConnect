@@ -1,7 +1,9 @@
+import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import cors from "cors";
 // import morgan from "morgan";
-import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -14,11 +16,21 @@ import newsRoutes from "./routes/newsRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
-dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
 const PORT = process.env.PORT || 5000;
 
+export const io = new Server(httpServer, {
+  cors: { origin: "*" }
+});
+
+io.on("connection", (socket) => {
+  console.log("Client connected via Socket", socket.id);
+  socket.on("join", (userId) => {
+    socket.join(userId);
+  });
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,12 +58,12 @@ app.use("/api/news", newsRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+httpServer.listen(PORT, () => {
+  console.log(`Server & Socket running on port ${PORT}`);
 }).on("error", (err) => {
   if (err.code === "EADDRINUSE") {
     console.log(`⚠️ Port ${PORT} in use. Trying 0 (random port)...`);
-    app.listen(0, () => {
+    httpServer.listen(0, () => {
       console.log("Now running on random available port.");
     });
   }

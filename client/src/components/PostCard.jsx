@@ -94,7 +94,7 @@ const PostCard = ({ post }) => {
           <img
             src={
               post.imageUrl
-                ? `${API_BASE}${post.imageUrl.replace(/\\/g, "/")}`
+                ? (post.imageUrl.startsWith("http") ? post.imageUrl : `${API_BASE}${post.imageUrl.replace(/\\/g, "/")}`)
                 : "https://images.pexels.com/photos/5945901/pexels-photo-5945901.jpeg?auto=compress&cs=tinysrgb&w=400"
             }
             alt={post.title}

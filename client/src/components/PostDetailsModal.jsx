@@ -23,7 +23,7 @@ const PostDetailsModal = ({ post, onClose }) => {
         <img
           src={
             post.imageUrl
-              ? `${API_BASE}${post.imageUrl.replace(/\\/g, "/")}`
+              ? (post.imageUrl.startsWith("http") ? post.imageUrl : `${API_BASE}${post.imageUrl.replace(/\\/g, "/")}`)
               : "https://via.placeholder.com/600x400"
           }
           alt={post.title}

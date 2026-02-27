@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useApp } from "../context.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
@@ -9,16 +10,17 @@ const AdminPanel = () => {
   const [stats, setStats] = useState(null);
   const [sellers, setSellers] = useState([]);
   const [buyers, setBuyers] = useState([]);
+  const [newsList, setNewsList] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
   const [newsForm, setNewsForm] = useState({
     title: "",
     summary: "",
-    imageUrl: "",
     source: "Admin",
     link: ""
   });
 
   const loadData = async () => {
-    const [s, sellersRes, buyersRes] = await Promise.all([
+    const [s, sellersRes, buyersRes, newsListRes] = await Promise.all([
       axios.get(`${API_BASE}/api/admin/stats`, {
         headers: { Authorization: `Bearer ${user?.token}` }
       }),
@@ -27,11 +29,15 @@ const AdminPanel = () => {
       }),
       axios.get(`${API_BASE}/api/admin/buyers`, {
         headers: { Authorization: `Bearer ${user?.token}` }
+      }),
+      axios.get(`${API_BASE}/api/news`, {
+        headers: { Authorization: `Bearer ${user?.token}` }
       })
     ]);
     setStats(s.data);
     setSellers(sellersRes.data);
     setBuyers(buyersRes.data);
+    setNewsList(newsListRes.data);
   };
 
   useEffect(() => {
@@ -44,12 +50,45 @@ const AdminPanel = () => {
     setNewsForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
+  const handleFile = (e) => {
+    setImageFile(e.target.files[0]);
+  };
+
   const submitNews = async (e) => {
     e.preventDefault();
-    await axios.post(`${API_BASE}/api/news`, newsForm, {
-      headers: { Authorization: `Bearer ${user?.token}` }
-    });
-    setNewsForm({ title: "", summary: "", imageUrl: "", source: "Admin", link: "" });
+    try {
+      const fd = new FormData();
+      Object.keys(newsForm).forEach((key) => fd.append(key, newsForm[key]));
+      if (imageFile) fd.append("image", imageFile);
+
+      await axios.post(`${API_BASE}/api/news`, fd, {
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+          "Content-Type": "multipart/form-data"
+        }
+      });
+      setNewsForm({ title: "", summary: "", source: "Admin", link: "" });
+      setImageFile(null);
+      document.getElementById('newsImageInput').value = "";
+      toast.success("News published successfully!");
+      loadData();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to post news");
+    }
+  };
+
+  const deleteNews = async (id) => {
+    if (!window.confirm("Delete this news article?")) return;
+    try {
+        await axios.delete(`${API_BASE}/api/news/${id}`, {
+            headers: { Authorization: `Bearer ${user?.token}` }
+        });
+        toast.success("News article deleted!");
+        loadData();
+    } catch (err) {
+        toast.error("Failed to delete news");
+    }
   };
 
   if (!user || user.role !== "admin") return null;
@@ -144,6 +183,43 @@ const AdminPanel = () => {
               )}
             </tbody>
           </table>
+
+          <h3 className="font-semibold text-sm mb-2 mt-4">Manage News</h3>
+          <table className="w-full text-xs md:text-sm">
+            <thead className="text-slate-500 dark:text-slate-400">
+              <tr>
+                <th className="text-left py-1 pr-2">Title</th>
+                <th className="text-left py-1 pr-2">Date</th>
+                <th className="text-right py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {newsList.map((n) => (
+                <tr
+                  key={n._id}
+                  className="border-t border-slate-100 dark:border-slate-800"
+                >
+                  <td className="py-1 pr-2">{n.title}</td>
+                  <td className="py-1 pr-2">{new Date(n.createdAt).toLocaleDateString()}</td>
+                  <td className="py-1 text-right">
+                    <button 
+                        onClick={() => deleteNews(n._id)}
+                        className="text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded bg-red-100 dark:bg-white/5 active:scale-95 transition"
+                    >
+                        Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {!newsList.length && (
+                <tr>
+                  <td colSpan={3} className="py-2 text-slate-500">
+                    No news articles.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         <form onSubmit={submitNews} className="card space-y-2">
@@ -165,11 +241,10 @@ const AdminPanel = () => {
             required
           />
           <input
-            name="imageUrl"
-            value={newsForm.imageUrl}
-            onChange={handleNewsChange}
-            placeholder="Image URL"
-            className="input"
+            id="newsImageInput"
+            type="file"
+            onChange={handleFile}
+            className="input text-xs"
           />
           <input
             name="source"
