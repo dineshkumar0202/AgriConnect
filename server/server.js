@@ -21,24 +21,9 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "https://agriconnect-market.onrender.com",
-  // In case the frontend URL ends with a slash or uses http
-  "https://agriconnect-market.onrender.com/",
-  "http://agriconnect-market.onrender.com"
-];
 
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, postman) or matching origins
-    if (!origin || allowedOrigins.includes(origin) || origin.startsWith("https://agriconnect-market")) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization", "Accept"]
