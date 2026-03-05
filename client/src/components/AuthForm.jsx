@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useApp } from "../context.jsx";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE || "https://agriconnect-server-volj.onrender.com";
 
 const AuthForm = ({ mode }) => {
   const { strings, login, setView } = useApp();
