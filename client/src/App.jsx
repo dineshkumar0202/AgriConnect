@@ -18,8 +18,7 @@ const App = () => {
   useEffect(() => {
     // Connect to the socket server
     const socket = io(API_BASE, {
-      withCredentials: true,
-      transports: ['websocket', 'polling']
+      withCredentials: true
     });
 
     if (user && user._id) {

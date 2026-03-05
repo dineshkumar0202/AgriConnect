@@ -45,8 +45,7 @@ const corsOptions = {
 };
 
 export const io = new Server(httpServer, {
-  cors: corsOptions,
-  transports: ['websocket', 'polling']
+  cors: corsOptions
 });
 
 io.on("connection", (socket) => {
