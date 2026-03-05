@@ -83,12 +83,12 @@ app.use("/api/news", newsRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`Server & Socket running on port ${PORT}`);
 }).on("error", (err) => {
   if (err.code === "EADDRINUSE") {
     console.log(`⚠️ Port ${PORT} in use. Trying 0 (random port)...`);
-    httpServer.listen(0, () => {
+    httpServer.listen(0, "0.0.0.0", () => {
       console.log("Now running on random available port.");
     });
   }
